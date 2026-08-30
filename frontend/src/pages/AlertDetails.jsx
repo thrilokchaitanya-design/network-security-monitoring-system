@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import "./AlertDetails.css";
 
 function AlertDetails() {
   const { alertId } = useParams();

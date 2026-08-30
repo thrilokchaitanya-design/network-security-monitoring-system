@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import NetworkTopology from "../components/NetworkTopology";
+import RealtimeAlerts from "../components/RealtimeAlerts";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [alerts, setAlerts] = useState([]);
@@ -86,7 +89,10 @@ function Dashboard() {
     <div className="dashboard-page">
       <div className="dashboard-container">
 
-        {/* HEADER */}
+        {/* =====================================================
+            HEADER
+            ===================================================== */}
+
         <header className="dashboard-header">
           <div>
             <p className="dashboard-eyebrow">
@@ -108,25 +114,39 @@ function Dashboard() {
           </button>
         </header>
 
-        {/* LOADING */}
+
+        {/* =====================================================
+            LOADING
+            ===================================================== */}
+
         {loading && (
           <div className="dashboard-message">
             Loading security data...
           </div>
         )}
 
-        {/* ERROR */}
+
+        {/* =====================================================
+            ERROR
+            ===================================================== */}
+
         {error && (
           <div className="dashboard-error">
             Failed to load security data: {error}
           </div>
         )}
 
+
         {!loading && !error && (
           <>
 
-            {/* SYSTEM STATUS */}
+
+            {/* =================================================
+                1. SYSTEM STATUS
+                ================================================= */}
+
             <section className="dashboard-section">
+
               <div className="section-heading">
                 <h2>System Status</h2>
               </div>
@@ -134,6 +154,7 @@ function Dashboard() {
               <div className="status-grid">
 
                 <div className="status-card">
+
                   <span className="status-dot online"></span>
 
                   <div>
@@ -141,11 +162,16 @@ function Dashboard() {
                       Backend
                     </span>
 
-                    <strong>Connected</strong>
+                    <strong>
+                      Connected
+                    </strong>
                   </div>
+
                 </div>
 
+
                 <div className="status-card">
+
                   <span className="status-dot pending"></span>
 
                   <div>
@@ -153,11 +179,16 @@ function Dashboard() {
                       AI Detection
                     </span>
 
-                    <strong>Pending</strong>
+                    <strong>
+                      Pending
+                    </strong>
                   </div>
+
                 </div>
 
+
                 <div className="status-card">
+
                   <span className="status-dot pending"></span>
 
                   <div>
@@ -165,15 +196,24 @@ function Dashboard() {
                       SDN Controller
                     </span>
 
-                    <strong>Pending</strong>
+                    <strong>
+                      Pending
+                    </strong>
                   </div>
+
                 </div>
 
               </div>
+
             </section>
 
-            {/* SECURITY OVERVIEW */}
+
+            {/* =================================================
+                2. SECURITY OVERVIEW
+                ================================================= */}
+
             <section className="dashboard-section">
+
               <div className="section-heading">
                 <h2>Security Overview</h2>
               </div>
@@ -181,6 +221,7 @@ function Dashboard() {
               <div className="overview-grid">
 
                 <div className="overview-card">
+
                   <span className="overview-label">
                     Total Alerts
                   </span>
@@ -188,9 +229,12 @@ function Dashboard() {
                   <strong>
                     {analytics?.total_alerts ?? 0}
                   </strong>
+
                 </div>
 
+
                 <div className="overview-card">
+
                   <span className="overview-label">
                     Active Alerts
                   </span>
@@ -198,9 +242,12 @@ function Dashboard() {
                   <strong>
                     {analytics?.active_alerts ?? 0}
                   </strong>
+
                 </div>
 
+
                 <div className="overview-card">
+
                   <span className="overview-label">
                     Critical Alerts
                   </span>
@@ -208,9 +255,12 @@ function Dashboard() {
                   <strong>
                     {criticalAlerts}
                   </strong>
+
                 </div>
 
+
                 <div className="overview-card">
+
                   <span className="overview-label">
                     Resolved Alerts
                   </span>
@@ -218,9 +268,12 @@ function Dashboard() {
                   <strong>
                     {analytics?.resolved_alerts ?? 0}
                   </strong>
+
                 </div>
 
+
                 <div className="overview-card">
+
                   <span className="overview-label">
                     Average Confidence
                   </span>
@@ -230,9 +283,12 @@ function Dashboard() {
                       analytics?.average_confidence
                     )}
                   </strong>
+
                 </div>
 
+
                 <div className="overview-card">
+
                   <span className="overview-label">
                     Active Hosts
                   </span>
@@ -240,41 +296,88 @@ function Dashboard() {
                   <strong>
                     {hosts.length}
                   </strong>
+
                 </div>
 
               </div>
+
             </section>
 
-            {/* SECURITY DISTRIBUTION */}
+
+            {/* =================================================
+                3. REAL-TIME ALERTS
+                ================================================= */}
+
             <section className="dashboard-section">
 
               <div className="section-heading">
+
                 <div>
-                  <h2>Security Distribution</h2>
+                  <h2>
+                    Real-Time Alerts
+                  </h2>
+
+                  <p>
+                    Live security events received from the monitoring system.
+                  </p>
+                </div>
+
+              </div>
+
+              <RealtimeAlerts />
+
+            </section>
+
+
+            {/* =================================================
+                4. SECURITY DISTRIBUTION
+                ================================================= */}
+
+            <section className="dashboard-section">
+
+              <div className="section-heading">
+
+                <div>
+                  <h2>
+                    Security Distribution
+                  </h2>
 
                   <p>
                     Current alert severity and attack-type distribution.
                   </p>
                 </div>
+
               </div>
+
 
               <div className="analytics-grid">
 
+
                 {/* SEVERITY */}
+
                 <div className="analytics-card">
 
-                  <h3>Severity</h3>
+                  <h3>
+                    Severity
+                  </h3>
 
                   {severityDistribution.length === 0 ? (
-                    <p>No severity data available.</p>
+
+                    <p>
+                      No severity data available.
+                    </p>
+
                   ) : (
+
                     <div className="distribution-list">
 
                       {severityDistribution.map((item) => (
+
                         <div
                           className="distribution-row"
                           key={item.severity}
                         >
+
                           <span>
                             {item.severity}
                           </span>
@@ -282,29 +385,43 @@ function Dashboard() {
                           <strong>
                             {item.count}
                           </strong>
+
                         </div>
+
                       ))}
 
                     </div>
+
                   )}
 
                 </div>
 
+
                 {/* ATTACK TYPES */}
+
                 <div className="analytics-card">
 
-                  <h3>Attack Types</h3>
+                  <h3>
+                    Attack Types
+                  </h3>
 
                   {attackDistribution.length === 0 ? (
-                    <p>No attack data available.</p>
+
+                    <p>
+                      No attack data available.
+                    </p>
+
                   ) : (
+
                     <div className="distribution-list">
 
                       {attackDistribution.map((item) => (
+
                         <div
                           className="distribution-row"
                           key={item.attack_type}
                         >
+
                           <span>
                             {item.attack_type}
                           </span>
@@ -312,10 +429,13 @@ function Dashboard() {
                           <strong>
                             {item.count}
                           </strong>
+
                         </div>
+
                       ))}
 
                     </div>
+
                   )}
 
                 </div>
@@ -324,13 +444,30 @@ function Dashboard() {
 
             </section>
 
-            {/* RECENT ALERTS */}
+
+            {/* =================================================
+                5. NETWORK TOPOLOGY
+                ================================================= */}
+
+            <section className="dashboard-section">
+
+              <NetworkTopology />
+
+            </section>
+
+
+            {/* =================================================
+                6. RECENT ALERTS
+                ================================================= */}
+
             <section className="dashboard-section">
 
               <div className="section-heading">
 
                 <div>
-                  <h2>Recent Alerts</h2>
+                  <h2>
+                    Recent Alerts
+                  </h2>
 
                   <p>
                     Security events detected by the monitoring system.
@@ -339,13 +476,21 @@ function Dashboard() {
 
               </div>
 
+
               <div className="alerts-list">
 
                 {alerts.length === 0 ? (
+
                   <div className="empty-state">
-                    <p>No alerts found.</p>
+
+                    <p>
+                      No alerts found.
+                    </p>
+
                   </div>
+
                 ) : (
+
                   alerts.map((alert) => (
 
                     <Link
@@ -376,9 +521,11 @@ function Dashboard() {
 
                       </div>
 
+
                       <div className="alert-network">
 
                         <div>
+
                           <span className="network-label">
                             Source IP
                           </span>
@@ -386,13 +533,17 @@ function Dashboard() {
                           <strong>
                             {alert.source_ip}
                           </strong>
+
                         </div>
+
 
                         <span className="network-arrow">
                           →
                         </span>
 
+
                         <div>
+
                           <span className="network-label">
                             Destination IP
                           </span>
@@ -400,49 +551,69 @@ function Dashboard() {
                           <strong>
                             {alert.destination_ip}
                           </strong>
+
                         </div>
 
                       </div>
 
+
                       <div className="alert-meta">
 
                         <div>
-                          <span>Confidence</span>
+
+                          <span>
+                            Confidence
+                          </span>
 
                           <strong>
                             {formatConfidence(
                               alert.confidence_score
                             )}
                           </strong>
+
                         </div>
 
+
                         <div>
-                          <span>Status</span>
+
+                          <span>
+                            Status
+                          </span>
 
                           <strong className="alert-status">
                             {alert.status}
                           </strong>
+
                         </div>
 
+
                         <div>
-                          <span>Alert ID</span>
+
+                          <span>
+                            Alert ID
+                          </span>
 
                           <strong>
                             #{alert.id}
                           </strong>
+
                         </div>
 
                       </div>
 
+
                       {alert.description && (
+
                         <p className="alert-description">
                           {alert.description}
                         </p>
+
                       )}
 
                     </Link>
 
                   ))
+
                 )}
 
               </div>

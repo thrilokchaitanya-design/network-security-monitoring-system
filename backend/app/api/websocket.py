@@ -55,8 +55,6 @@ async def alert_websocket(websocket: WebSocket):
 
     try:
         while True:
-            # Keep the connection alive and wait for messages.
-            # The server primarily pushes alert events to clients.
             await websocket.receive_text()
 
     except WebSocketDisconnect:
@@ -64,3 +62,32 @@ async def alert_websocket(websocket: WebSocket):
 
     except Exception:
         manager.disconnect(websocket)
+
+
+# ============================================================
+# TEMPORARY REAL-TIME ALERT TEST
+# ============================================================
+
+@router.get("/ws/test-alert")
+async def test_alert():
+
+    test_alert_data = {
+        "type": "alert",
+        "data": {
+            "id": 999,
+            "severity": "CRITICAL",
+            "attack_type": "DDoS",
+            "source_ip": "192.168.1.250",
+            "destination_ip": "192.168.1.10",
+            "confidence_score": 0.98,
+            "status": "active",
+            "description": "Test real-time security alert",
+        },
+    }
+
+    await manager.broadcast(test_alert_data)
+
+    return {
+        "message": "Test alert broadcast successfully",
+        "alert": test_alert_data,
+    }
