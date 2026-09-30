@@ -8,14 +8,10 @@ from app.api.alerts import router as alerts_router
 from app.api.hosts import router as hosts_router
 from app.api.actions import router as actions_router
 from app.api.analytics import router as analytics_router
+from app.api.topology import router as topology_router
 from app.api.websocket import router as websocket_router
-
 from app.database import get_db
 
-
-# ============================================================
-# FASTAPI APPLICATION
-# ============================================================
 
 app = FastAPI(
     title="Capstone Backend",
@@ -50,6 +46,7 @@ app.include_router(alerts_router)
 app.include_router(actions_router)
 app.include_router(hosts_router)
 app.include_router(analytics_router)
+app.include_router(topology_router)
 app.include_router(websocket_router)
 
 
