@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import NetworkTopology from "../components/NetworkTopology";
@@ -11,60 +11,66 @@ function Dashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [attackDistribution, setAttackDistribution] = useState([]);
   const [severityDistribution, setSeverityDistribution] = useState([]);
+  const [topologyRefreshKey, setTopologyRefreshKey] = useState(0);
+  const [controllerStatus, setControllerStatus] = useState("Checking...");
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [refreshError, setRefreshError] = useState("");
+
+  const fetchSecurityData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+      setRefreshError("");
+      setTopologyRefreshKey((current) => current + 1);
+    }
+
+    try {
+      const [
+        alertsResponse,
+        hostsResponse,
+        analyticsResponse,
+        attacksResponse,
+        severityResponse,
+      ] = await Promise.all([
+        api.get("/alerts"),
+        api.get("/hosts"),
+        api.get("/stats"),
+        api.get("/analytics/attacks"),
+        api.get("/analytics/severity"),
+      ]);
+
+      setAlerts(alertsResponse.data.items || []);
+      setHosts(hostsResponse.data || []);
+      setAnalytics(analyticsResponse.data);
+      setAttackDistribution(attacksResponse.data || []);
+      setSeverityDistribution(severityResponse.data || []);
+    } catch (err) {
+      console.error("SECURITY DATA ERROR:", err);
+
+      const message = err.response?.data?.detail || err.message || "Failed to load security data.";
+      if (isRefresh) {
+        setRefreshError(message);
+      } else {
+        setError(message);
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchSecurityData = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-
-        if (!token) {
-          throw new Error("No access token found");
-        }
-
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
-
-        const [
-          alertsResponse,
-          hostsResponse,
-          analyticsResponse,
-          attacksResponse,
-          severityResponse,
-        ] = await Promise.all([
-          api.get("/alerts", { headers }),
-          api.get("/hosts", { headers }),
-          api.get("/analytics/summary", { headers }),
-          api.get("/analytics/attacks", { headers }),
-          api.get("/analytics/severity", { headers }),
-        ]);
-
-        setAlerts(alertsResponse.data.items || []);
-        setHosts(hostsResponse.data || []);
-        setAnalytics(analyticsResponse.data);
-        setAttackDistribution(attacksResponse.data || []);
-        setSeverityDistribution(severityResponse.data || []);
-      } catch (err) {
-        console.error("SECURITY DATA ERROR:", err);
-
-        setError(
-          err.response?.data?.detail ||
-            err.message ||
-            "Failed to load security data."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSecurityData();
-  }, []);
+  }, [fetchSecurityData]);
 
   const criticalAlerts =
     analytics?.severity?.critical ?? 0;
+
+  const reportTopologySource = useCallback((source) => {
+    setControllerStatus(source === "sdn_controller" ? "Connected" : "Not Connected");
+  }, []);
 
   const formatConfidence = (confidence) => {
     if (confidence === null || confidence === undefined) {
@@ -108,11 +114,22 @@ function Dashboard() {
 
           <button
             className="refresh-button"
-            onClick={() => window.location.reload()}
+            onClick={() => fetchSecurityData(true)}
+            disabled={loading || refreshing}
+            aria-label="Refresh dashboard data"
           >
-            Refresh Data
+            {refreshing ? "Refreshing…" : "Refresh Data"}
           </button>
+          <Link className="refresh-button timeline-link" to="/timeline">
+            Alert Timeline
+          </Link>
         </header>
+
+        {refreshError && (
+          <div className="dashboard-error" role="alert">
+            Could not refresh dashboard data: {refreshError}
+          </div>
+        )}
 
 
         {/* =====================================================
@@ -180,7 +197,7 @@ function Dashboard() {
                     </span>
 
                     <strong>
-                      Pending
+                      Awaiting detector
                     </strong>
                   </div>
 
@@ -197,7 +214,7 @@ function Dashboard() {
                     </span>
 
                     <strong>
-                      Pending
+                      {controllerStatus}
                     </strong>
                   </div>
 
@@ -451,7 +468,7 @@ function Dashboard() {
 
             <section className="dashboard-section">
 
-              <NetworkTopology />
+              <NetworkTopology refreshKey={topologyRefreshKey} onSourceChange={reportTopologySource} />
 
             </section>
 

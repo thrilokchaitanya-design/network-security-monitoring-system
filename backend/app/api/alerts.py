@@ -236,6 +236,37 @@ def get_recent_alerts(
 
 
 # ============================================================
+# ALERT TIMELINE / REPLAY DATA
+# ============================================================
+
+@router.get(
+    "/timeline",
+    response_model=AlertListResponse,
+)
+def get_alert_timeline(
+    start: datetime | None = Query(default=None, description="Inclusive timeline start"),
+    end: datetime | None = Query(default=None, description="Inclusive timeline end"),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=500, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    query = db.query(AlertModel)
+    if start is not None:
+        query = query.filter(AlertModel.timestamp >= start)
+    if end is not None:
+        query = query.filter(AlertModel.timestamp <= end)
+
+    total = query.count()
+    alerts = (
+        query.order_by(AlertModel.timestamp.asc(), AlertModel.id.asc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return {"items": alerts, "total": total, "skip": skip, "limit": limit}
+
+
+# ============================================================
 # GET ALERT BY ID
 # ============================================================
 

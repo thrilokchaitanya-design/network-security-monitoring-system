@@ -391,67 +391,19 @@ network-security-monitoring-system/
 
 # Current Development Status
 
-The project has completed the major backend/API foundation and the initial dashboard integration.
+The W1–W9 backend and dashboard work is implemented in the repository: `/topology` and `/stats`, database-backed topology and analytics views, persisted alert ingestion with WebSocket delivery, and alert timeline/replay are available. Review 2 integration contracts and schema/API documentation are in [`docs/REVIEW2_IMPLEMENTATION.md`](docs/REVIEW2_IMPLEMENTATION.md).
 
-The current milestone focuses on building the dashboard topology and real-time alerts panel.
+The real SDN and detector processes are separate project modules. Set `SDN_CONTROLLER_URL` and connect the Member A/B detector to `POST /alerts` to demonstrate a real end-to-end attack path. Without those external processes, the UI clearly labels registered-host topology and cannot claim the live Review 2 integration is demonstrated.
 
-The real-time WebSocket connection between the React frontend and FastAPI backend is operational.
+### W7–W9 implementation checklist
 
-The next major development phase is to begin replacing mocked dashboard data with the actual integrated pipeline.
-
----
-
-# Upcoming Work
-
-## Week 7
-
-* [ ] Implement `/topology`
-* [ ] Implement `/stats`
-* [ ] Connect topology to backend data
-* [ ] Connect analytics/statistics to dashboard
-* [ ] Begin replacing mocked data
-* [ ] Integrate real network/AI pipeline as modules become available
-
-## Week 8
-
-* [ ] Complete first end-to-end attack path
-* [ ] Verify real alerts reach the dashboard
-* [ ] Remove remaining mocked alert feed
-* [ ] Validate real-time detection → backend → dashboard flow
-
-Target pipeline:
-
-```text
-Network Traffic
-      ↓
-Detection Engine
-      ↓
-Alert Generation
-      ↓
-FastAPI Backend
-      ↓
-WebSocket
-      ↓
-React Dashboard
-      ↓
-Real-Time Security Alert
-```
-
-## Week 9
-
-* [ ] Build alert timeline
-* [ ] Build replay functionality
-* [ ] Test real attack data
-* [ ] Fix schema mismatches
-* [ ] Improve dashboard visualization
-
-## Review 2 Preparation
-
-* [ ] Real network topology displayed
-* [ ] Real security alerts displayed
-* [ ] Real-time alert pipeline demonstrated
-* [ ] End-to-end attack path demonstrated
-* [ ] Dashboard polished for live demonstration
+* [x] Implement `/topology` and `/stats`
+* [x] Connect dashboard topology and statistics to backend data
+* [x] Replace static sample topology and test-alert broadcast with data-backed integrations
+* [x] Persist and broadcast ingested detector alerts
+* [x] Add chronological alert timeline and replay controls
+* [ ] Run the live end-to-end attack path with Member A/B detector and SDN controller
+* [ ] Verify the integrated pipeline with real attack data in the Review 2 environment
 
 ---
 
@@ -653,7 +605,7 @@ The final system aims to provide a unified network security monitoring platform 
 
 **Frontend Build:** Passing
 
-**Next Major Milestone:** Real topology/statistics endpoints and end-to-end integration of real security alerts.
+**Next Major Milestone:** Connect and verify the external SDN controller and Member A/B detector for the Review 2 live attack-path demo.
 
 ```
 ```

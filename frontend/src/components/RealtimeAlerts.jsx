@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import api from "../services/api";
 import "./RealtimeAlerts.css";
 
 function RealtimeAlerts() {
@@ -6,53 +7,55 @@ function RealtimeAlerts() {
   const [connectionStatus, setConnectionStatus] = useState("Connecting...");
 
   useEffect(() => {
-    const socket = new WebSocket("ws://127.0.0.1:8000/ws/alerts");
-
-    socket.onopen = () => {
-      console.log("WebSocket connected");
-      setConnectionStatus("Live");
+    let active = true;
+    let socket;
+    let reconnectTimer;
+    let reconnectDelay = 1000;
+    const mergeAlerts = (current, incoming) => {
+      const byId = new Map();
+      [...incoming, ...current].forEach((alert) => byId.set(alert.id, alert));
+      return [...byId.values()]
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 10);
     };
 
-    socket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
+    api.get("/alerts/recent?limit=10")
+      .then(({ data }) => { if (active) setAlerts((current) => mergeAlerts(current, data)); })
+      .catch(() => { if (active) setConnectionStatus("Connecting..."); });
 
-        console.log("REAL-TIME ALERT:", message);
-
-        if (message.type === "alert" && message.data) {
-          const newAlert = message.data;
-
-          setAlerts((currentAlerts) => [
-            newAlert,
-            ...currentAlerts,
-          ]);
+    const connect = () => {
+      if (!active) return;
+      const baseUrl = api.defaults.baseURL || window.location.origin;
+      socket = new WebSocket(`${baseUrl.replace(/^http/, "ws")}/ws/alerts`);
+      socket.onopen = () => {
+        reconnectDelay = 1000;
+        setConnectionStatus("Live");
+      };
+      socket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          if (message.type === "alert" && message.data) {
+            setAlerts((current) => mergeAlerts(current, [message.data]));
+          }
+        } catch (parseError) {
+          console.error("Failed to parse WebSocket message:", parseError);
         }
-      } catch (error) {
-        console.error(
-          "Failed to parse WebSocket message:",
-          error
-        );
-      }
+      };
+      socket.onerror = () => socket.close();
+      socket.onclose = () => {
+        if (!active) return;
+        setConnectionStatus("Reconnecting...");
+        reconnectTimer = window.setTimeout(connect, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, 15000);
+      };
     };
-
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-      setConnectionStatus("Disconnected");
-    };
-
-    socket.onclose = () => {
-      console.log("WebSocket connection closed");
-      setConnectionStatus("Disconnected");
-    };
+    connect();
 
     return () => {
-  if (
-    socket.readyState === WebSocket.OPEN ||
-    socket.readyState === WebSocket.CONNECTING
-  ) {
-    socket.close();
-  }
-};
+      active = false;
+      window.clearTimeout(reconnectTimer);
+      if (socket && socket.readyState <= WebSocket.OPEN) socket.close();
+    };
   }, []);
 
   const formatConfidence = (confidence) => {

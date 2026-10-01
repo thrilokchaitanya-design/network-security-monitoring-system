@@ -56,3 +56,25 @@ def test_websocket_disconnect():
         websocket.send_text("test")
 
     assert True
+
+
+def test_alert_ingestion_broadcasts_persisted_event():
+    payload = {
+        "severity": "HIGH",
+        "attack_type": "TEST_WEBSOCKET_PIPELINE",
+        "source_ip": "10.0.0.20",
+        "destination_ip": "10.0.0.30",
+        "confidence_score": 0.91,
+        "status": "active",
+        "description": "Integration path test",
+    }
+
+    with client.websocket_connect("/ws/alerts") as websocket:
+        response = client.post("/alerts", json=payload)
+        assert response.status_code == 201
+        stored_alert = response.json()
+        message = websocket.receive_json()
+
+    assert message["type"] == "alert"
+    assert message["data"]["id"] == stored_alert["id"]
+    assert message["data"]["attack_type"] == payload["attack_type"]

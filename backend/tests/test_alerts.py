@@ -306,3 +306,21 @@ def test_alerts_default_pagination():
 
     assert data["skip"] == 0
     assert data["limit"] == 20
+
+
+def test_alert_timeline_returns_chronological_events():
+    first = client.post("/alerts", json=create_alert_payload(attack_type="TEST_TIMELINE_FIRST"))
+    second = client.post("/alerts", json=create_alert_payload(attack_type="TEST_TIMELINE_SECOND"))
+    assert first.status_code == 201
+    assert second.status_code == 201
+
+    response = client.get("/alerts/timeline?limit=1000")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] >= 2
+    assert data["items"] == sorted(data["items"], key=lambda item: (item["timestamp"], item["id"]))
+    assert {item["attack_type"] for item in data["items"]}.issuperset({"TEST_TIMELINE_FIRST", "TEST_TIMELINE_SECOND"})
+
+
+def test_alert_timeline_rejects_invalid_limit():
+    assert client.get("/alerts/timeline?limit=1001").status_code == 422

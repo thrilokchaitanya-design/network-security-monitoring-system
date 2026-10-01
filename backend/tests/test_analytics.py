@@ -25,6 +25,14 @@ def test_security_summary():
     assert "low" in data["severity"]
 
 
+def test_stats_compatibility_endpoint_matches_summary():
+    stats = client.get("/stats")
+    summary = client.get("/analytics/summary")
+
+    assert stats.status_code == 200
+    assert stats.json() == summary.json()
+
+
 def test_attack_distribution():
     response = client.get("/analytics/attacks")
 

@@ -7,7 +7,7 @@ from app.api.auth import router as auth_router
 from app.api.alerts import router as alerts_router
 from app.api.hosts import router as hosts_router
 from app.api.actions import router as actions_router
-from app.api.analytics import router as analytics_router
+from app.api.analytics import get_security_summary, router as analytics_router
 from app.api.topology import router as topology_router
 from app.api.websocket import router as websocket_router
 from app.database import get_db
@@ -48,6 +48,12 @@ app.include_router(hosts_router)
 app.include_router(analytics_router)
 app.include_router(topology_router)
 app.include_router(websocket_router)
+
+
+@app.get("/stats", tags=["Security Analytics"])
+def get_stats(db: Session = Depends(get_db)):
+    """Compatibility endpoint for the weekly plan's /stats contract."""
+    return get_security_summary(db)
 
 
 # ============================================================
